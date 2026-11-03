@@ -2,7 +2,7 @@
 
 Website belajar bahasa Jepang untuk pemula, berbahasa Indonesia.
 
-🔗 **Buka website:** https://USERNAME.github.io/agit-nihongo/
+🔗 **Buka website:** https://agitbayy.github.io/agit-nihongo/
 
 ## Isi
 
