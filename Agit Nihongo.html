@@ -1,0 +1,1192 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Agit Nihongo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: kepala halaman ringkas, tiga tab (Kana, Kosakata, Kuis). Tab Kana memakai bagan 5 kolom (a i u e o) di kiri dan panel detail di kanan. */
+:root {
+  --bg: #F1F3F4;
+  --surface: #FFFFFF;
+  --ink: #15212C;
+  --muted: #5B6874;
+  --line: #D5DBE0;
+  --soft: #E4EAF0;
+  --indigo: #28486F;
+  --on-indigo: #FFFFFF;
+  --seal: #C23B22;
+  --good: #2E7D4F;
+  --bad: #B3261E;
+  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-body: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F161D; --surface: #17212B; --ink: #E8EDF1; --muted: #9AA7B3; --line: #2A3743;
+    --soft: #1E2B38; --indigo: #8FB0D8; --on-indigo: #0F161D; --seal: #E8664D;
+    --good: #62C08A; --bad: #F2766B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F161D; --surface: #17212B; --ink: #E8EDF1; --muted: #9AA7B3; --line: #2A3743;
+  --soft: #1E2B38; --indigo: #8FB0D8; --on-indigo: #0F161D; --seal: #E8664D;
+  --good: #62C08A; --bad: #F2766B; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--seal); outline-offset: 2px; }
+
+/* Header */
+header { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.mark {
+  font-family: var(--font-display); font-weight: 700; color: var(--indigo);
+  font-size: clamp(44px, 10vw, 68px); line-height: 1; letter-spacing: .04em;
+  border-right: 2px solid var(--seal); padding-right: 20px;
+}
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 5vw, 36px); line-height: 1.15; margin: 2px 0 4px; text-wrap: balance; }
+.lead { color: var(--muted); max-width: 52ch; margin: 0; }
+
+/* Tabs */
+nav { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+nav a {
+  padding: 10px 18px; text-decoration: none; color: var(--muted); font-weight: 500;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap;
+}
+nav a:hover { color: var(--ink); }
+nav a[aria-current="page"] { color: var(--indigo); border-bottom-color: var(--seal); font-weight: 700; }
+
+section[data-view] { display: flex; flex-direction: column; gap: 20px; }
+h2 { font-family: var(--font-display); font-size: 24px; margin: 0; line-height: 1.25; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; max-width: 62ch; }
+
+/* Segmented switch + chips */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 8px 18px; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--indigo); color: var(--on-indigo); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.progress { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.bar { width: 120px; height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--seal); width: 0; transition: width .3s; }
+
+/* Kana */
+.kana-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.chart { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.cell {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 68px; padding: 6px 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+}
+.cell .k { font-family: var(--font-display); font-weight: 500; font-size: clamp(24px, 5.5vw, 32px); line-height: 1.15; }
+.cell .r { font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+.cell:hover { border-color: var(--indigo); }
+.cell[aria-pressed="true"] { background: var(--indigo); border-color: var(--indigo); color: var(--on-indigo); }
+.cell[aria-pressed="true"] .r { color: inherit; opacity: .85; }
+.cell.done::after { content: ""; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--seal); }
+.gap { visibility: hidden; }
+
+.detail {
+  position: sticky; top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 20px; display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center;
+}
+.detail .big { font-family: var(--font-display); font-weight: 500; font-size: 112px; line-height: 1; color: var(--indigo); }
+.detail .rom { font-size: 26px; font-weight: 700; letter-spacing: .04em; }
+.example { width: 100%; background: var(--soft); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.example .lbl { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.example .w { font-family: var(--font-display); font-size: 28px; line-height: 1.2; }
+.example .m { color: var(--muted); font-size: 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.btn {
+  border: 1px solid var(--indigo); background: none; color: var(--indigo); border-radius: 6px;
+  padding: 8px 16px; font-weight: 500;
+}
+.btn:hover { background: var(--soft); }
+.btn.primary { background: var(--indigo); color: var(--on-indigo); }
+.btn.primary:hover { opacity: .9; }
+.btn.on { border-color: var(--seal); color: var(--seal); }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* Vocab */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 14px; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--indigo); border-color: var(--indigo); color: var(--on-indigo); }
+input[type="search"] {
+  font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 12px; min-width: 0; width: 280px; max-width: 100%;
+}
+.vocab { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.vcard {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: start; min-width: 0;
+}
+.vcard .jp { font-family: var(--font-display); font-weight: 500; font-size: 26px; line-height: 1.25; overflow-wrap: anywhere; }
+.vcard .rd { font-size: 13px; color: var(--muted); grid-column: 1; }
+.vcard .ro { font-weight: 700; color: var(--indigo); grid-column: 1; }
+.vcard .id { grid-column: 1; }
+.vcard .sp { grid-column: 2; grid-row: 1; border: 1px solid var(--line); background: none; border-radius: 6px; padding: 4px 10px; font-size: 13px; color: var(--indigo); }
+.vcard .sp:hover { background: var(--soft); }
+.vcard .ex { grid-column: 1 / -1; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.vcard .ex b { font-family: var(--font-display); font-weight: 500; font-size: 18px; color: var(--ink); }
+.vcard .hf { grid-column: 1 / -1; justify-self: start; margin-top: 8px; padding: 4px 12px; font-size: 13px; }
+.vcard.kj .jp { font-size: 52px; line-height: 1.1; }
+.empty { color: var(--muted); padding: 24px 0; }
+
+/* Quiz */
+.quiz { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 18px; max-width: 640px; }
+.qhead { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.qprompt { text-align: center; padding: 8px 0; }
+.qprompt .q { font-family: var(--font-display); font-weight: 500; font-size: 84px; line-height: 1.1; color: var(--indigo); overflow-wrap: anywhere; }
+.qprompt .q.small { font-size: 40px; }
+.qprompt .t { color: var(--muted); font-size: 14px; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.opt { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 12px 10px; font-weight: 500; min-height: 52px; overflow-wrap: anywhere; }
+.opt:hover:not(:disabled) { border-color: var(--indigo); }
+.opt.ok { border-color: var(--good); color: var(--good); background: var(--surface); font-weight: 700; }
+.opt.no { border-color: var(--bad); color: var(--bad); background: var(--surface); }
+.opt:disabled { cursor: default; }
+.fb { min-height: 1.6em; font-weight: 700; text-align: center; margin: 0; }
+.fb.ok { color: var(--good); } .fb.no { color: var(--bad); }
+.setup { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.score { font-family: var(--font-display); font-size: 56px; line-height: 1; color: var(--indigo); font-variant-numeric: tabular-nums; }
+.review { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+
+.qgroup { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.qlabel { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.qbar { display: block; width: 100%; }
+.vocab .more { grid-column: 1 / -1; justify-self: center; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (max-width: 760px) {
+  .kana-layout { grid-template-columns: minmax(0, 1fr); }
+  .detail { position: static; order: -1; flex-direction: row; flex-wrap: wrap; text-align: left; justify-content: center; }
+  .detail .big { font-size: 84px; }
+  .quiz { padding: 18px; }
+  .qprompt .q { font-size: 68px; }
+  .mark { border-right: 0; padding-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark" aria-hidden="true">日本語</div>
+    <div>
+      <div class="eyebrow">Belajar bahasa Jepang dari nol</div>
+      <h1>Agit Nihongo</h1>
+      <p class="lead">Kenali hiragana, katakana, dan kanji dasar, hafalkan kata sehari-hari, lalu uji diri dengan kuis singkat.</p>
+    </div>
+  </header>
+
+  <nav aria-label="Menu belajar">
+    <a href="#kana" data-tab="kana">Hiragana &amp; Katakana</a>
+    <a href="#kosakata" data-tab="kosakata">Kosakata</a>
+    <a href="#kanji" data-tab="kanji">Kanji</a>
+    <a href="#kuis" data-tab="kuis">Kuis</a>
+  </nav>
+
+  <!-- KANA -->
+  <section data-view="kana" hidden>
+    <div>
+      <h2>Mulai dari 46 huruf dasar</h2>
+      <p class="sub">Bahasa Jepang memakai dua set huruf bunyi. Hiragana untuk kata asli Jepang, katakana untuk kata serapan seperti コーヒー (kōhī, kopi). Pelajari satu baris per hari: a-i-u-e-o dulu, lalu ka-ki-ku-ke-ko, dan seterusnya.</p>
+    </div>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Pilih huruf">
+        <button id="seg-h" type="button" aria-pressed="true">Hiragana</button>
+        <button id="seg-k" type="button" aria-pressed="false">Katakana</button>
+      </div>
+      <div class="progress"><span id="prog-text">0 dari 46 hafal</span><span class="bar"><i id="prog-bar"></i></span></div>
+    </div>
+    <div class="kana-layout">
+      <div class="chart" id="chart"></div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+    <p class="hint">Ketuk huruf untuk melihat detailnya. Tandai "Sudah hafal" dan kemajuan Anda tersimpan di browser ini.</p>
+  </section>
+
+  <!-- KOSAKATA -->
+  <section data-view="kosakata" hidden>
+    <div>
+      <h2>Kata dan frasa pertama</h2>
+      <p class="sub">Kata-kata ini muncul di hampir setiap percakapan. Cukup hafalkan beberapa per hari.</p>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="vocab" id="vocab"></div>
+  </section>
+
+  <!-- KANJI -->
+  <section data-view="kanji" hidden>
+    <div>
+      <h2>Kanji N5 dan N3</h2>
+      <p class="sub">Kanji adalah huruf dari Tiongkok yang satu hurufnya mewakili satu makna. Satu kanji bisa punya dua jenis bacaan: <strong>On</strong> (bacaan Tiongkok, dipakai di gabungan kanji) dan <strong>Kun</strong> (bacaan asli Jepang, dipakai sendirian). Huruf dalam tanda kurung pada Kun, seperti <em>ta(beru)</em>, adalah akhiran kata kerja atau sifat yang ditulis dengan hiragana.</p>
+      <p class="hint">JLPT tidak merilis daftar kanji resmi. Level N3 (370 kanji) mengikuti daftar kanjikana.com, sedangkan N5 (sekitar 100 kanji) adalah daftar yang umum dipakai di buku pelajaran. Mulailah dari N5, lalu filter Kata kerja.</p>
+    </div>
+    <div class="toolbar">
+      <div class="progress"><span id="kprog-text">0 dari 0 hafal</span><span class="bar"><i id="kprog-bar"></i></span></div>
+    </div>
+    <div class="filters" id="klevels"></div>
+    <div class="filters" id="kfilters"></div>
+    <div class="vocab" id="kanji"></div>
+  </section>
+
+  <!-- KUIS -->
+  <section data-view="kuis" hidden>
+    <div>
+      <h2>Kuis</h2>
+      <p class="sub">Pilih materi dan jumlah soal, jawab, dan lihat langsung benar atau salahnya. Skor terbaik tersimpan di browser ini.</p>
+    </div>
+    <div class="quiz" id="quiz"></div>
+  </section>
+
+  <footer>Suara memakai pembaca teks bawaan perangkat Anda dan bisa berbeda di tiap perangkat. Jika tidak terdengar, cek volume atau pengaturan bahasa Jepang di perangkat.</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Data ---------- */
+  // [hiragana, katakana, romaji, contoh kata, romaji kata, arti]
+  var ROWS = [
+    [['あ','ア','a','あめ','ame','hujan'],['い','イ','i','いぬ','inu','anjing'],['う','ウ','u','うみ','umi','laut'],['え','エ','e','えき','eki','stasiun'],['お','オ','o','おちゃ','ocha','teh']],
+    [['か','カ','ka','かさ','kasa','payung'],['き','キ','ki','き','ki','pohon'],['く','ク','ku','くるま','kuruma','mobil'],['け','ケ','ke','けさ','kesa','pagi ini'],['こ','コ','ko','こえ','koe','suara']],
+    [['さ','サ','sa','さかな','sakana','ikan'],['し','シ','shi','しお','shio','garam'],['す','ス','su','すし','sushi','sushi'],['せ','セ','se','せかい','sekai','dunia'],['そ','ソ','so','そら','sora','langit']],
+    [['た','タ','ta','たまご','tamago','telur'],['ち','チ','chi','ちず','chizu','peta'],['つ','ツ','tsu','つくえ','tsukue','meja'],['て','テ','te','て','te','tangan'],['と','ト','to','とり','tori','burung']],
+    [['な','ナ','na','なつ','natsu','musim panas'],['に','ニ','ni','にく','niku','daging'],['ぬ','ヌ','nu','ぬの','nuno','kain'],['ね','ネ','ne','ねこ','neko','kucing'],['の','ノ','no','のり','nori','rumput laut']],
+    [['は','ハ','ha','はな','hana','bunga'],['ひ','ヒ','hi','ひと','hito','orang'],['ふ','フ','fu','ふね','fune','kapal'],['へ','ヘ','he','へや','heya','kamar'],['ほ','ホ','ho','ほし','hoshi','bintang']],
+    [['ま','マ','ma','まど','mado','jendela'],['み','ミ','mi','みず','mizu','air'],['む','ム','mu','むし','mushi','serangga'],['め','メ','me','めがね','megane','kacamata'],['も','モ','mo','もり','mori','hutan']],
+    [['や','ヤ','ya','やま','yama','gunung'],null,['ゆ','ユ','yu','ゆき','yuki','salju'],null,['よ','ヨ','yo','よる','yoru','malam']],
+    [['ら','ラ','ra','らくだ','rakuda','unta'],['り','リ','ri','りんご','ringo','apel'],['る','ル','ru','るす','rusu','tidak di rumah'],['れ','レ','re','れもん','remon','lemon'],['ろ','ロ','ro','ろく','roku','enam']],
+    [['わ','ワ','wa','わに','wani','buaya'],null,null,null,['を','ヲ','wo','','','Partikel penanda objek. Ditulis を, dibaca "o".']],
+    [['ん','ン','n','ほん','hon','buku'],null,null,null,null]
+  ];
+  var KANA = [];
+  ROWS.forEach(function (row) { row.forEach(function (c) { if (c) KANA.push(c); }); });
+
+  // [jepang, bacaan kana, romaji, arti, kategori]
+  var VOCAB = [
+    ['こんにちは','','konnichiwa','Halo / selamat siang','Salam'],
+    ['おはようございます','','ohayō gozaimasu','Selamat pagi','Salam'],
+    ['こんばんは','','konbanwa','Selamat malam','Salam'],
+    ['おやすみなさい','','oyasuminasai','Selamat tidur','Salam'],
+    ['ありがとう','','arigatō','Terima kasih','Salam'],
+    ['すみません','','sumimasen','Maaf / permisi','Salam'],
+    ['さようなら','','sayōnara','Selamat tinggal','Salam'],
+    ['はい','','hai','Ya','Salam'],
+    ['いいえ','','iie','Tidak','Salam'],
+    ['いただきます','','itadakimasu','Selamat makan (diucapkan sebelum makan)','Salam'],
+    ['はじめまして','','hajimemashite','Salam kenal','Perkenalan'],
+    ['よろしくおねがいします','','yoroshiku onegaishimasu','Mohon bantuannya / senang bertemu','Perkenalan'],
+    ['わたし','','watashi','Saya','Perkenalan'],
+    ['なまえ','','namae','Nama','Perkenalan'],
+    ['がくせい','','gakusei','Pelajar / mahasiswa','Perkenalan'],
+    ['インドネシア','','indoneshia','Indonesia','Perkenalan'],
+    ['にほんご','','nihongo','Bahasa Jepang','Perkenalan'],
+    ['一','いち','ichi','Satu (1)','Angka'],
+    ['二','に','ni','Dua (2)','Angka'],
+    ['三','さん','san','Tiga (3)','Angka'],
+    ['四','よん','yon','Empat (4), juga dibaca し (shi)','Angka'],
+    ['五','ご','go','Lima (5)','Angka'],
+    ['六','ろく','roku','Enam (6)','Angka'],
+    ['七','なな','nana','Tujuh (7), juga dibaca しち (shichi)','Angka'],
+    ['八','はち','hachi','Delapan (8)','Angka'],
+    ['九','きゅう','kyū','Sembilan (9)','Angka'],
+    ['十','じゅう','jū','Sepuluh (10)','Angka'],
+    ['みず','','mizu','Air','Makanan'],
+    ['おちゃ','','ocha','Teh','Makanan'],
+    ['ごはん','','gohan','Nasi / makanan','Makanan'],
+    ['さかな','','sakana','Ikan','Makanan'],
+    ['にく','','niku','Daging','Makanan'],
+    ['たまご','','tamago','Telur','Makanan'],
+    ['りんご','','ringo','Apel','Makanan']
+  ];
+  var CATS = ['Semua', 'Salam', 'Perkenalan', 'Angka', 'Makanan'];
+
+  // [kanji, On, Kun, arti, contoh kata, bacaan contoh, romaji contoh, arti contoh, kategori]
+  var KANJI = [
+    ['一','ichi','hito(tsu)','Satu','一人','ひとり','hitori','Satu orang','Angka'],
+    ['二','ni','futa(tsu)','Dua','二人','ふたり','futari','Dua orang','Angka'],
+    ['三','san','mit(tsu)','Tiga','三月','さんがつ','sangatsu','Maret','Angka'],
+    ['四','shi','yon','Empat','四月','しがつ','shigatsu','April','Angka'],
+    ['五','go','itsu(tsu)','Lima','五月','ごがつ','gogatsu','Mei','Angka'],
+    ['六','roku','mut(tsu)','Enam','六月','ろくがつ','rokugatsu','Juni','Angka'],
+    ['七','shichi','nana','Tujuh','七月','しちがつ','shichigatsu','Juli','Angka'],
+    ['八','hachi','yat(tsu)','Delapan','八月','はちがつ','hachigatsu','Agustus','Angka'],
+    ['九','kyū, ku','kokono(tsu)','Sembilan','九月','くがつ','kugatsu','September','Angka'],
+    ['十','jū','tō','Sepuluh','十月','じゅうがつ','jūgatsu','Oktober','Angka'],
+    ['百','hyaku','-','Seratus','百円','ひゃくえん','hyaku-en','100 yen','Angka'],
+    ['千','sen','chi','Seribu','千円','せんえん','sen-en','1.000 yen','Angka'],
+    ['万','man','-','Sepuluh ribu','一万','いちまん','ichiman','10.000','Angka'],
+    ['日','nichi, jitsu','hi, ka','Matahari / hari','日本','にほん','nihon','Jepang','Hari & alam'],
+    ['月','getsu, gatsu','tsuki','Bulan','月曜日','げつようび','getsuyōbi','Hari Senin','Hari & alam'],
+    ['火','ka','hi','Api','火曜日','かようび','kayōbi','Hari Selasa','Hari & alam'],
+    ['水','sui','mizu','Air','水曜日','すいようび','suiyōbi','Hari Rabu','Hari & alam'],
+    ['木','moku','ki','Pohon / kayu','木曜日','もくようび','mokuyōbi','Hari Kamis','Hari & alam'],
+    ['金','kin','kane','Emas / uang','金曜日','きんようび','kinyōbi','Hari Jumat','Hari & alam'],
+    ['土','do','tsuchi','Tanah','土曜日','どようび','doyōbi','Hari Sabtu','Hari & alam'],
+    ['山','san','yama','Gunung','富士山','ふじさん','Fujisan','Gunung Fuji','Hari & alam'],
+    ['川','sen','kawa','Sungai','川','かわ','kawa','Sungai','Hari & alam'],
+    ['田','den','ta','Sawah','田中','たなか','Tanaka','Nama keluarga Tanaka','Hari & alam'],
+    ['雨','u','ame','Hujan','大雨','おおあめ','ōame','Hujan deras','Hari & alam'],
+    ['人','jin, nin','hito','Orang','日本人','にほんじん','nihonjin','Orang Jepang','Orang & tubuh'],
+    ['男','dan','otoko','Laki-laki','男の子','おとこのこ','otoko no ko','Anak laki-laki','Orang & tubuh'],
+    ['女','jo','onna','Perempuan','女の子','おんなのこ','onna no ko','Anak perempuan','Orang & tubuh'],
+    ['子','shi','ko','Anak','子ども','こども','kodomo','Anak-anak','Orang & tubuh'],
+    ['口','kō','kuchi','Mulut','入口','いりぐち','iriguchi','Pintu masuk','Orang & tubuh'],
+    ['目','moku','me','Mata','目','め','me','Mata','Orang & tubuh'],
+    ['手','shu','te','Tangan','手紙','てがみ','tegami','Surat','Orang & tubuh'],
+    ['大','dai, tai','ō(kii)','Besar','大学','だいがく','daigaku','Universitas','Sifat'],
+    ['小','shō','chii(sai)','Kecil','小学生','しょうがくせい','shōgakusei','Murid SD','Sifat'],
+    ['学','gaku','mana(bu)','Belajar','学生','がくせい','gakusei','Pelajar / mahasiswa','Sekolah'],
+    ['先','sen','saki','Lebih dulu','先生','せんせい','sensei','Guru','Sekolah'],
+    ['生','sei, shō','i(kiru), u(mareru)','Hidup / lahir','生まれる','うまれる','umareru','Dilahirkan','Sekolah'],
+    ['本','hon','moto','Buku / asal','本','ほん','hon','Buku','Sekolah'],
+    ['円','en','maru(i)','Yen / bulat','円','えん','en','Yen (mata uang Jepang)','Angka'],
+    ['年','nen','toshi','Tahun','今年','ことし','kotoshi','Tahun ini','Waktu'],
+    ['時','ji','toki','Jam / waktu','三時','さんじ','sanji','Jam tiga','Waktu'],
+    ['分','fun, bun','wa(keru)','Menit / bagian','五分','ごふん','gofun','Lima menit','Waktu'],
+    ['半','han','naka(ba)','Setengah','半分','はんぶん','hanbun','Separuh','Waktu'],
+    ['午','go','-','Siang (tengah hari)','午前','ごぜん','gozen','Pagi (sebelum tengah hari)','Waktu'],
+    ['前','zen','mae','Depan / sebelum','名前','なまえ','namae','Nama','Waktu'],
+    ['後','go, kō','ushi(ro), ato','Belakang / sesudah','午後','ごご','gogo','Siang-sore (setelah tengah hari)','Waktu'],
+    ['今','kon, kin','ima','Sekarang','今日','きょう','kyō','Hari ini','Waktu'],
+    ['毎','mai','-','Setiap','毎日','まいにち','mainichi','Setiap hari','Waktu'],
+    ['週','shū','-','Minggu (pekan)','今週','こんしゅう','konshū','Minggu ini','Waktu'],
+    ['曜','yō','-','Hari dalam seminggu','日曜日','にちようび','nichiyōbi','Hari Minggu','Waktu'],
+    ['間','kan, ken','aida, ma','Antara / selang','時間','じかん','jikan','Waktu / jam','Waktu'],
+    ['天','ten','ame, ama','Langit','天気','てんき','tenki','Cuaca','Hari & alam'],
+    ['上','jō','ue, a(geru)','Atas','上','うえ','ue','Atas','Arah'],
+    ['下','ka, ge','shita, sa(geru)','Bawah','下','した','shita','Bawah','Arah'],
+    ['中','chū','naka','Tengah / dalam','中','なか','naka','Dalam','Arah'],
+    ['外','gai, ge','soto','Luar','外国','がいこく','gaikoku','Luar negeri','Arah'],
+    ['左','sa','hidari','Kiri','左','ひだり','hidari','Kiri','Arah'],
+    ['右','u, yū','migi','Kanan','右','みぎ','migi','Kanan','Arah'],
+    ['北','hoku','kita','Utara','北','きた','kita','Utara','Arah'],
+    ['南','nan','minami','Selatan','南','みなみ','minami','Selatan','Arah'],
+    ['東','tō','higashi','Timur','東京','とうきょう','Tōkyō','Tokyo','Arah'],
+    ['西','sei, sai','nishi','Barat','西口','にしぐち','nishiguchi','Pintu keluar barat','Arah'],
+    ['高','kō','taka(i)','Tinggi / mahal','高い','たかい','takai','Tinggi / mahal','Sifat'],
+    ['安','an','yasu(i)','Murah / tenteram','安い','やすい','yasui','Murah','Sifat'],
+    ['新','shin','atara(shii)','Baru','新聞','しんぶん','shinbun','Koran','Sifat'],
+    ['古','ko','furu(i)','Lama / tua','古い','ふるい','furui','Lama / kuno','Sifat'],
+    ['長','chō','naga(i)','Panjang','長い','ながい','nagai','Panjang','Sifat'],
+    ['少','shō','suko(shi)','Sedikit','少し','すこし','sukoshi','Sedikit','Sifat'],
+    ['多','ta','ō(i)','Banyak','多い','おおい','ōi','Banyak','Sifat'],
+    ['白','haku','shiro(i)','Putih','白い','しろい','shiroi','Putih','Sifat'],
+    ['父','fu','chichi','Ayah','お父さん','おとうさん','otōsan','Ayah (orang lain / panggilan)','Orang & tubuh'],
+    ['母','bo','haha','Ibu','お母さん','おかあさん','okāsan','Ibu (orang lain / panggilan)','Orang & tubuh'],
+    ['友','yū','tomo','Teman','友だち','ともだち','tomodachi','Teman','Orang & tubuh'],
+    ['耳','ji','mimi','Telinga','耳','みみ','mimi','Telinga','Orang & tubuh'],
+    ['足','soku','ashi','Kaki','足','あし','ashi','Kaki','Orang & tubuh'],
+    ['名','mei, myō','na','Nama','名前','なまえ','namae','Nama','Orang & tubuh'],
+    ['校','kō','-','Sekolah','学校','がっこう','gakkō','Sekolah','Sekolah'],
+    ['語','go','kata(ru)','Bahasa','日本語','にほんご','nihongo','Bahasa Jepang','Sekolah'],
+    ['何','ka','nani, nan','Apa','何','なに','nani','Apa','Lainnya'],
+    ['気','ki, ke','-','Semangat / udara','天気','てんき','tenki','Cuaca','Lainnya'],
+    ['国','koku','kuni','Negara','国','くに','kuni','Negara','Benda & tempat'],
+    ['電','den','-','Listrik','電車','でんしゃ','densha','Kereta listrik','Benda & tempat'],
+    ['車','sha','kuruma','Mobil / kendaraan','車','くるま','kuruma','Mobil','Benda & tempat'],
+    ['花','ka','hana','Bunga','花','はな','hana','Bunga','Benda & tempat'],
+    ['店','ten','mise','Toko','店','みせ','mise','Toko','Benda & tempat'],
+    ['魚','gyo','sakana, uo','Ikan','魚','さかな','sakana','Ikan','Benda & tempat'],
+    ['道','dō','michi','Jalan','道','みち','michi','Jalan','Benda & tempat'],
+    ['見','ken','mi(ru)','Melihat','見る','みる','miru','Melihat','Kata kerja'],
+    ['聞','bun, mon','ki(ku)','Mendengar / bertanya','聞く','きく','kiku','Mendengar','Kata kerja'],
+    ['話','wa','hanas(u)','Berbicara','話す','はなす','hanasu','Berbicara','Kata kerja'],
+    ['言','gen, gon','i(u)','Mengatakan','言う','いう','iu','Mengatakan','Kata kerja'],
+    ['読','doku','yo(mu)','Membaca','読む','よむ','yomu','Membaca','Kata kerja'],
+    ['書','sho','ka(ku)','Menulis','書く','かく','kaku','Menulis','Kata kerja'],
+    ['食','shoku','ta(beru)','Makan','食べる','たべる','taberu','Makan','Kata kerja'],
+    ['飲','in','no(mu)','Minum','飲む','のむ','nomu','Minum','Kata kerja'],
+    ['買','bai','ka(u)','Membeli','買う','かう','kau','Membeli','Kata kerja'],
+    ['行','kō, gyō','i(ku)','Pergi','行く','いく','iku','Pergi','Kata kerja'],
+    ['来','rai','ku(ru)','Datang','来る','くる','kuru','Datang','Kata kerja'],
+    ['出','shutsu','de(ru), da(su)','Keluar','出る','でる','deru','Keluar','Kata kerja'],
+    ['入','nyū','hai(ru), i(reru)','Masuk','入る','はいる','hairu','Masuk','Kata kerja'],
+    ['会','kai','a(u)','Bertemu','会う','あう','au','Bertemu','Kata kerja'],
+    ['休','kyū','yasu(mu)','Istirahat / libur','休む','やすむ','yasumu','Istirahat / libur','Kata kerja'],
+    ['立','ritsu','ta(tsu)','Berdiri','立つ','たつ','tatsu','Berdiri','Kata kerja']
+  ];
+  var KCATS = ['Semua', 'Kata kerja', 'Angka', 'Waktu', 'Hari & alam', 'Arah', 'Sifat', 'Orang & tubuh', 'Benda & tempat', 'Sekolah', 'Lainnya'];
+
+  // Kanji N3 mengikuti daftar kanjikana.com. Bacaan dan contoh kata dilengkapi sendiri.
+  var KANJI_N3 = [
+    ['部','bu','-','Bagian','部分','ぶぶん','bubun','Bagian','Lainnya'],
+    ['合','gō, kas, gatsu','a(u)','Cocok / bertemu','合う','あう','au','Cocok','Kata kerja'],
+    ['最','sai','mottomo','Paling','最近','さいきん','saikin','Akhir-akhir ini','Waktu'],
+    ['当','tō','a(taru)','Mengenai / tepat','当たる','あたる','ataru','Mengenai','Kata kerja'],
+    ['全','zen','matta(ku), sube(te)','Seluruh','全部','ぜんぶ','zenbu','Semuanya','Lainnya'],
+    ['回','kai, e','mawa(ru)','Kali / berputar','回る','まわる','mawaru','Berputar','Kata kerja'],
+    ['戦','sen','tataka(u)','Perang','戦う','たたかう','tatakau','Bertarung','Kata kerja'],
+    ['実','jitsu','mi, mino(ru)','Kenyataan','実際','じっさい','jissai','Sebenarnya','Lainnya'],
+    ['性','sei, shō','-','Sifat / jenis kelamin','性格','せいかく','seikaku','Watak','Orang & tubuh'],
+    ['連','ren','tsu(reru), tsura(naru)','Membawa','連れる','つれる','tsureru','Membawa serta','Kata kerja'],
+    ['取','shu','to(ru)','Mengambil','取る','とる','toru','Mengambil','Kata kerja'],
+    ['要','yō','i(ru), kaname','Perlu','要る','いる','iru','Perlu','Kata kerja'],
+    ['対','tai, tsui','-','Berhadapan','対する','たいする','taisuru','Menghadapi','Kata kerja'],
+    ['決','ketsu','ki(meru), ki(maru)','Memutuskan','決める','きめる','kimeru','Memutuskan','Kata kerja'],
+    ['変','hen','ka(waru), ka(eru)','Berubah / aneh','大変','たいへん','taihen','Berat / gawat','Sifat'],
+    ['所','sho','tokoro','Tempat','場所','ばしょ','basho','Tempat','Benda & tempat'],
+    ['相','sō, shō','ai','Saling','相談','そうだん','sōdan','Konsultasi','Lainnya'],
+    ['関','kan','seki','Hubungan','関係','かんけい','kankei','Hubungan','Lainnya'],
+    ['信','shin','-','Percaya','信じる','しんじる','shinjiru','Percaya','Kata kerja'],
+    ['感','kan','-','Perasaan','感じる','かんじる','kanjiru','Merasa','Kata kerja'],
+    ['勝','shō','ka(tsu), masa(ru)','Menang','勝つ','かつ','katsu','Menang','Kata kerja'],
+    ['解','kai, ge','to(ku), to(keru)','Menguraikan','解く','とく','toku','Memecahkan','Kata kerja'],
+    ['調','chō','shira(beru), totono(u)','Memeriksa','調べる','しらべる','shiraberu','Memeriksa','Kata kerja'],
+    ['初','sho','hajime, haji(mete), hatsu','Pertama','初めて','はじめて','hajimete','Pertama kali','Waktu'],
+    ['法','hō, hatsu, hot','-','Hukum / cara','方法','ほうほう','hōhō','Cara','Lainnya'],
+    ['違','i','chiga(u)','Berbeda','違う','ちがう','chigau','Berbeda','Kata kerja'],
+    ['現','gen','arawa(reru)','Tampak / kini','現れる','あらわれる','arawareru','Muncul','Kata kerja'],
+    ['夫','fu, fū','otto','Suami','夫','おっと','otto','Suami','Orang & tubuh'],
+    ['内','nai, dai','uchi','Dalam','内側','うちがわ','uchigawa','Sisi dalam','Arah'],
+    ['選','sen','era(bu)','Memilih','選ぶ','えらぶ','erabu','Memilih','Kata kerja'],
+    ['次','ji, shi','tsugi, tsu(gu)','Berikutnya','次','つぎ','tsugi','Berikutnya','Waktu'],
+    ['機','ki','hata','Mesin / kesempatan','機会','きかい','kikai','Kesempatan','Lainnya'],
+    ['面','men','omote, tsura, omo','Muka / permukaan','面白い','おもしろい','omoshiroi','Menarik','Sifat'],
+    ['必','hitsu','kanara(zu)','Pasti','必ず','かならず','kanarazu','Pasti','Lainnya'],
+    ['定','tei, jō','sada(meru), sada(maru)','Menetapkan','定める','さだめる','sadameru','Menetapkan','Kata kerja'],
+    ['成','sei, jō','na(ru), na(su)','Menjadi','成長','せいちょう','seichō','Pertumbuhan','Lainnya'],
+    ['引','in','hi(ku)','Menarik','引く','ひく','hiku','Menarik','Kata kerja'],
+    ['声','sei, shō','koe, kowa','Suara','声','こえ','koe','Suara','Orang & tubuh'],
+    ['確','kaku','tashi(ka), tashi(kameru)','Pasti','確かめる','たしかめる','tashikameru','Memastikan','Kata kerja'],
+    ['続','zoku','tsuzu(ku), tsuzu(keru)','Berlanjut','続く','つづく','tsuzuku','Berlanjut','Kata kerja'],
+    ['向','kō','mu(ku), mu(kau), mu(keru)','Menghadap','向かう','むかう','mukau','Menuju','Kata kerja'],
+    ['受','ju','u(keru), u(karu)','Menerima','受ける','うける','ukeru','Menerima','Kata kerja'],
+    ['約','yaku','-','Janji','約束','やくそく','yakusoku','Janji','Lainnya'],
+    ['報','hō','muku(iru)','Laporan','報告','ほうこく','hōkoku','Laporan','Lainnya'],
+    ['平','hei, byō','taira, hira','Datar / damai','平和','へいわ','heiwa','Perdamaian','Lainnya'],
+    ['数','sū, su','kazu, kazo(eru)','Jumlah','数える','かぞえる','kazoeru','Menghitung','Kata kerja'],
+    ['好','kō','su(ki), kono(mu)','Suka','好き','すき','suki','Suka','Sifat'],
+    ['番','ban','-','Nomor / giliran','番号','ばんごう','bangō','Nomor','Angka'],
+    ['神','shin, jin','kami','Dewa','神','かみ','kami','Dewa','Lainnya'],
+    ['直','choku, jiki','nao(su), nao(ru), tada(chi ni)','Langsung / memperbaiki','直す','なおす','naosu','Memperbaiki','Kata kerja'],
+    ['任','nin','maka(seru)','Tugas / mempercayakan','任せる','まかせる','makaseru','Mempercayakan','Kata kerja'],
+    ['情','jō, sei','nasa(ke)','Perasaan','感情','かんじょう','kanjō','Emosi','Lainnya'],
+    ['様','yō','sama','Tuan / keadaan','様子','ようす','yōsu','Keadaan','Lainnya'],
+    ['件','ken','-','Perkara','事件','じけん','jiken','Kasus','Lainnya'],
+    ['助','jo','tasu(keru), tasu(karu)','Menolong','助ける','たすける','tasukeru','Menolong','Kata kerja'],
+    ['化','ka, ke','ba(keru)','Perubahan','文化','ぶんか','bunka','Budaya','Lainnya'],
+    ['供','kyō, ku','tomo, sona(eru)','Menemani / mempersembahkan','子供','こども','kodomo','Anak','Orang & tubuh'],
+    ['記','ki','shiru(su)','Mencatat','日記','にっき','nikki','Buku harian','Lainnya'],
+    ['指','shi','yubi, sa(su)','Jari / menunjuk','指','ゆび','yubi','Jari','Orang & tubuh'],
+    ['配','hai','kuba(ru)','Membagikan','配る','くばる','kubaru','Membagikan','Kata kerja'],
+    ['務','mu','tsuto(meru)','Tugas','務める','つとめる','tsutomeru','Menjabat','Kata kerja'],
+    ['残','zan','noko(ru), noko(su)','Sisa','残る','のこる','nokoru','Tersisa','Kata kerja'],
+    ['彼','hi','kare, kano','Dia','彼','かれ','kare','Dia (laki-laki)','Orang & tubuh'],
+    ['得','toku','e(ru), u(ru)','Memperoleh','得る','える','eru','Memperoleh','Kata kerja'],
+    ['組','so','ku(mu), kumi','Kelompok','組む','くむ','kumu','Menyusun','Kata kerja'],
+    ['落','raku','o(chiru), o(tosu)','Jatuh','落ちる','おちる','ochiru','Jatuh','Kata kerja'],
+    ['警','kei','-','Peringatan','警察','けいさつ','keisatsu','Polisi','Orang & tubuh'],
+    ['原','gen','hara','Asal / dataran','原因','げんいん','genin','Penyebab','Lainnya'],
+    ['殺','satsu, sai, setsu','koro(su)','Membunuh','殺す','ころす','korosu','Membunuh','Kata kerja'],
+    ['失','shitsu','ushina(u)','Kehilangan','失う','うしなう','ushinau','Kehilangan','Kata kerja'],
+    ['能','nō','-','Kemampuan','能力','のうりょく','nōryoku','Kemampuan','Lainnya'],
+    ['係','kei','kakari, kaka(ru)','Bagian / berkaitan','係','かかり','kakari','Petugas','Orang & tubuh'],
+    ['進','shin','susu(mu), susu(meru)','Maju','進む','すすむ','susumu','Maju','Kata kerja'],
+    ['経','kei, kyō','he(ru)','Melewati / ekonomi','経つ','たつ','tatsu','Berlalu','Kata kerja'],
+    ['美','bi','utsuku(shii)','Indah','美しい','うつくしい','utsukushii','Indah','Sifat'],
+    ['表','hyō','omote, arawa(su)','Permukaan / menyatakan','表す','あらわす','arawasu','Menyatakan','Kata kerja'],
+    ['付','fu','tsu(ku), tsu(keru)','Menempel','付く','つく','tsuku','Menempel','Kata kerja'],
+    ['利','ri','ki(ku)','Untung / berguna','便利','べんり','benri','Praktis','Sifat'],
+    ['伝','den','tsuta(eru), tsuta(waru)','Menyampaikan','伝える','つたえる','tsutaeru','Menyampaikan','Kata kerja'],
+    ['加','ka','kuwa(eru), kuwa(waru)','Menambah','加える','くわえる','kuwaeru','Menambahkan','Kata kerja'],
+    ['反','han, hon, tan','so(ru)','Berlawanan','反対','はんたい','hantai','Kebalikan','Lainnya'],
+    ['過','ka','su(giru), sa(ru), ayama(chi)','Lewat','過ぎる','すぎる','sugiru','Melewati','Kata kerja'],
+    ['然','zen, nen','-','Alami','自然','しぜん','shizen','Alam','Hari & alam'],
+    ['置','chi','o(ku)','Meletakkan','置く','おく','oku','Meletakkan','Kata kerja'],
+    ['官','kan','-','Pejabat','警官','けいかん','keikan','Polisi','Orang & tubuh'],
+    ['命','mei, myō','inochi','Nyawa','命','いのち','inochi','Nyawa','Orang & tubuh'],
+    ['由','yu, yū, yui','yoshi','Alasan','理由','りゆう','riyū','Alasan','Lainnya'],
+    ['認','nin','mito(meru)','Mengakui','認める','みとめる','mitomeru','Mengakui','Kata kerja'],
+    ['点','ten','-','Titik / nilai','点数','てんすう','tensū','Nilai','Sekolah'],
+    ['放','hō','hana(su), hana(tsu)','Melepas','放す','はなす','hanasu','Melepaskan','Kata kerja'],
+    ['期','ki, go','-','Periode','期間','きかん','kikan','Jangka waktu','Waktu'],
+    ['優','yū','yasa(shii), sugu(reru)','Lembut / unggul','優しい','やさしい','yasashii','Baik hati','Sifat'],
+    ['告','koku','tsu(geru)','Memberitahu','告げる','つげる','tsugeru','Memberitahu','Kata kerja'],
+    ['民','min','tami','Rakyat','国民','こくみん','kokumin','Rakyat','Orang & tubuh'],
+    ['議','gi','-','Rapat','会議','かいぎ','kaigi','Rapat','Lainnya'],
+    ['治','ji, chi','osa(meru), nao(ru)','Memerintah / sembuh','治る','なおる','naoru','Sembuh','Kata kerja'],
+    ['乗','jō','no(ru)','Naik / menumpang','乗る','のる','noru','Naik','Kata kerja'],
+    ['状','jō','-','Keadaan / surat','状態','じょうたい','jōtai','Kondisi','Lainnya'],
+    ['達','tatsu, dachi','-','Mencapai / (jamak)','友達','ともだち','tomodachi','Teman','Orang & tubuh'],
+    ['予','yo','-','Sebelumnya / di muka','予定','よてい','yotei','Rencana','Lainnya'],
+    ['消','shō','ke(su), ki(eru)','Memadamkan / menghapus','消す','けす','kesu','Mematikan / menghapus','Kata kerja'],
+    ['活','katsu','-','Hidup / aktif','生活','せいかつ','seikatsu','Kehidupan sehari-hari','Lainnya'],
+    ['果','ka','ha(tasu), hate','Buah / hasil','結果','けっか','kekka','Hasil','Lainnya'],
+    ['備','bi','sona(eru)','Persiapan / perlengkapan','準備','じゅんび','junbi','Persiapan','Lainnya'],
+    ['流','ryū','naga(reru), naga(su)','Mengalir / arus','流れる','ながれる','nagareru','Mengalir','Kata kerja'],
+    ['守','shu, su','mamo(ru)','Menjaga / melindungi','守る','まもる','mamoru','Menjaga','Kata kerja'],
+    ['愛','ai','-','Cinta','愛情','あいじょう','aijō','Kasih sayang','Lainnya'],
+    ['呼','ko','yo(bu)','Memanggil','呼ぶ','よぶ','yobu','Memanggil','Kata kerja'],
+    ['歳','sai, sei','-','Usia / tahun','二十歳','はたち','hatachi','Usia dua puluh tahun','Waktu'],
+    ['判','han, ban','-','Menilai / cap','裁判','さいばん','saiban','Pengadilan','Lainnya'],
+    ['頭','tō, zu, to','atama','Kepala','頭','あたま','atama','Kepala','Orang & tubuh'],
+    ['断','dan','kotowa(ru), ta(tsu)','Menolak / memutus','断る','ことわる','kotowaru','Menolak','Kata kerja'],
+    ['説','setsu, zei','to(ku)','Penjelasan / pendapat','説明','せつめい','setsumei','Penjelasan','Lainnya'],
+    ['役','yaku, eki','-','Peran / tugas','役に立つ','やくにたつ','yaku ni tatsu','Berguna','Lainnya'],
+    ['負','fu','ma(keru), o(u)','Kalah / memikul','負ける','まける','makeru','Kalah','Kata kerja'],
+    ['追','tsui','o(u)','Mengejar','追う','おう','ou','Mengejar','Kata kerja'],
+    ['在','zai','a(ru)','Ada / berada','存在','そんざい','sonzai','Keberadaan','Lainnya'],
+    ['他','ta','hoka','Lain','他人','たにん','tanin','Orang lain','Orang & tubuh'],
+    ['太','tai, ta','futo(i)','Gemuk / tebal','太い','ふとい','futoi','Tebal / gemuk','Sifat'],
+    ['葉','yō','ha','Daun','葉','は','ha','Daun','Hari & alam'],
+    ['政','sei, shō','matsurigoto','Politik / pemerintahan','政治','せいじ','seiji','Politik','Lainnya'],
+    ['君','kun','kimi','Kamu / tuan','君','きみ','kimi','Kamu','Orang & tubuh'],
+    ['頼','rai','tano(mu), tayo(ru)','Meminta / mengandalkan','頼む','たのむ','tanomu','Meminta','Kata kerja'],
+    ['和','wa','yawa(ragu), nago(mu)','Harmoni / Jepang','平和','へいわ','heiwa','Perdamaian','Lainnya'],
+    ['王','ō','-','Raja','王様','おうさま','ōsama','Raja','Orang & tubuh'],
+    ['術','jutsu','-','Seni / teknik','手術','しゅじゅつ','shujutsu','Operasi bedah','Lainnya'],
+    ['込','-','ko(mu)','Masuk / padat','込む','こむ','komu','Ramai / padat','Kata kerja'],
+    ['支','shi','sasa(eru)','Menopang / cabang','支える','ささえる','sasaeru','Menopang','Kata kerja'],
+    ['産','san','u(mu)','Melahirkan / produksi','産む','うむ','umu','Melahirkan','Kata kerja'],
+    ['交','kō','maji(waru), ka(wasu)','Bergaul / bertukar','交通','こうつう','kōtsū','Lalu lintas','Lainnya'],
+    ['察','satsu','-','Menduga / memahami','警察','けいさつ','keisatsu','Polisi','Orang & tubuh'],
+    ['難','nan','muzuka(shii), kata(i)','Sulit','難しい','むずかしい','muzukashii','Sulit','Sifat'],
+    ['想','sō','-','Gagasan / membayangkan','予想','よそう','yosō','Perkiraan','Lainnya'],
+    ['常','jō','tsune','Biasa / selalu','日常','にちじょう','nichijō','Sehari-hari','Lainnya'],
+    ['望','bō, mō','nozo(mu)','Berharap','望む','のぞむ','nozomu','Berharap','Kata kerja'],
+    ['打','da','u(tsu)','Memukul','打つ','うつ','utsu','Memukul','Kata kerja'],
+    ['制','sei','-','Sistem / aturan','制度','せいど','seido','Sistem','Lainnya'],
+    ['談','dan','-','Berbincang','相談','そうだん','sōdan','Konsultasi','Lainnya'],
+    ['共','kyō','tomo','Bersama','共通','きょうつう','kyōtsū','Kesamaan','Lainnya'],
+    ['市','shi','ichi','Kota / pasar','市場','いちば','ichiba','Pasar','Benda & tempat'],
+    ['構','kō','kama(eru)','Struktur / bersiap','構造','こうぞう','kōzō','Struktur','Lainnya'],
+    ['位','i','kurai','Posisi / peringkat','位置','いち','ichi','Posisi','Lainnya'],
+    ['式','shiki','-','Upacara / rumus','結婚式','けっこんしき','kekkonshiki','Upacara pernikahan','Lainnya'],
+    ['戻','rei','modo(ru)','Kembali','戻る','もどる','modoru','Kembali','Kata kerja'],
+    ['覚','kaku','obo(eru), sa(meru)','Mengingat / terjaga','覚える','おぼえる','oboeru','Mengingat','Kata kerja'],
+    ['飛','hi','to(bu)','Terbang','飛ぶ','とぶ','tobu','Terbang','Kata kerja'],
+    ['返','hen','kae(su), kae(ru)','Mengembalikan','返す','かえす','kaesu','Mengembalikan','Kata kerja'],
+    ['念','nen','-','Pikiran / harapan','残念','ざんねん','zannen','Sayang sekali','Sifat'],
+    ['済','sai','su(mu)','Selesai / beres','済む','すむ','sumu','Selesai','Kata kerja'],
+    ['客','kyaku, kaku','-','Tamu / pelanggan','お客さん','おきゃくさん','okyakusan','Tamu / pelanggan','Orang & tubuh'],
+    ['格','kaku, kō','-','Status / kualifikasi','合格','ごうかく','gōkaku','Lulus ujian','Sekolah'],
+    ['顔','gan','kao','Wajah','顔','かお','kao','Wajah','Orang & tubuh'],
+    ['危','ki','abu(nai), aya(ui)','Berbahaya','危ない','あぶない','abunai','Berbahaya','Sifat'],
+    ['首','shu','kubi','Leher / kepala','首','くび','kubi','Leher','Orang & tubuh'],
+    ['良','ryō','yo(i)','Baik','良い','よい','yoi','Baik','Sifat'],
+    ['投','tō','na(geru)','Melempar','投げる','なげる','nageru','Melempar','Kata kerja'],
+    ['権','ken, gon','-','Hak / wewenang','権利','けんり','kenri','Hak','Lainnya'],
+    ['両','ryō','-','Kedua / mata uang lama','両親','りょうしん','ryōshin','Orang tua','Orang & tubuh'],
+    ['演','en','-','Pertunjukan / tampil','演奏','えんそう','ensō','Permainan musik','Lainnya'],
+    ['師','shi','-','Guru / ahli','教師','きょうし','kyōshi','Guru','Orang & tubuh'],
+    ['害','gai','-','Kerugian / bahaya','被害','ひがい','higai','Kerusakan / korban','Lainnya'],
+    ['石','seki, shaku, koku','ishi','Batu','石','いし','ishi','Batu','Hari & alam'],
+    ['完','kan','-','Sempurna / selesai','完全','かんぜん','kanzen','Sempurna','Sifat'],
+    ['光','kō','hikari, hika(ru)','Cahaya','光','ひかり','hikari','Cahaya','Hari & alam'],
+    ['突','totsu','tsu(ku)','Menusuk / tiba-tiba','突然','とつぜん','totsuzen','Tiba-tiba','Lainnya'],
+    ['求','kyū','moto(meru)','Meminta / mencari','求める','もとめる','motomeru','Meminta / mencari','Kata kerja'],
+    ['球','kyū','tama','Bola','地球','ちきゅう','chikyū','Bumi','Hari & alam'],
+    ['渡','to','wata(ru), wata(su)','Menyeberang / menyerahkan','渡る','わたる','wataru','Menyeberang','Kata kerja'],
+    ['緒','sho, cho','o','Awal / tali','一緒','いっしょ','issho','Bersama','Lainnya'],
+    ['婚','kon','-','Pernikahan','結婚','けっこん','kekkon','Pernikahan','Lainnya'],
+    ['資','shi','-','Modal / bahan','資料','しりょう','shiryō','Dokumen / materi','Lainnya'],
+    ['捕','ho','tsuka(maeru), to(ru)','Menangkap','捕まえる','つかまえる','tsukamaeru','Menangkap','Kata kerja'],
+    ['苦','ku','kuru(shii), niga(i)','Pahit / sengsara','苦しい','くるしい','kurushii','Menyakitkan / sesak','Sifat'],
+    ['絶','zetsu','ta(eru), ta(yasu)','Memutus / mutlak','絶対','ぜったい','zettai','Mutlak','Lainnya'],
+    ['昨','saku','-','Lalu / kemarin','昨日','きのう','kinō','Kemarin','Waktu'],
+    ['容','yō','-','Isi / menampung','内容','ないよう','naiyō','Isi','Lainnya'],
+    ['参','san','mai(ru)','Ikut serta / berkunjung','参加','さんか','sanka','Partisipasi','Lainnya'],
+    ['収','shū','osa(meru)','Menerima / menyimpan','収入','しゅうにゅう','shūnyū','Pendapatan','Lainnya'],
+    ['願','gan','nega(u)','Memohon / harapan','願う','ねがう','negau','Memohon','Kata kerja'],
+    ['職','shoku','-','Pekerjaan / jabatan','職業','しょくぎょう','shokugyō','Profesi','Orang & tubuh'],
+    ['座','za','suwa(ru)','Duduk / tempat duduk','座る','すわる','suwaru','Duduk','Kata kerja'],
+    ['争','sō','araso(u)','Bersaing / bertengkar','争う','あらそう','arasou','Bersaing','Kata kerja'],
+    ['限','gen','kagi(ru)','Batas','限る','かぎる','kagiru','Membatasi','Kata kerja'],
+    ['退','tai','shirizo(ku)','Mundur','退院','たいいん','taiin','Keluar dari rumah sakit','Lainnya'],
+    ['形','kei, gyō','katachi, kata','Bentuk','形','かたち','katachi','Bentuk','Benda & tempat'],
+    ['許','kyo','yuru(su)','Mengizinkan / memaafkan','許す','ゆるす','yurusu','Mengizinkan / memaafkan','Kata kerja'],
+    ['局','kyoku','-','Biro / kantor','薬局','やっきょく','yakkyoku','Apotek','Benda & tempat'],
+    ['息','soku','iki','Napas','息','いき','iki','Napas','Orang & tubuh'],
+    ['疑','gi','utaga(u)','Meragukan','疑う','うたがう','utagau','Meragukan','Kata kerja'],
+    ['逃','tō','ni(geru), nog(asu)','Melarikan diri','逃げる','にげる','nigeru','Melarikan diri','Kata kerja'],
+    ['笑','shō','wara(u), e(mu)','Tertawa','笑う','わらう','warau','Tertawa','Kata kerja'],
+    ['船','sen','fune','Kapal','船','ふね','fune','Kapal','Benda & tempat'],
+    ['育','iku','soda(teru), soda(tsu)','Membesarkan','育てる','そだてる','sodateru','Membesarkan','Kata kerja'],
+    ['働','dō','hatara(ku)','Bekerja','働く','はたらく','hataraku','Bekerja','Kata kerja'],
+    ['若','jaku','waka(i)','Muda','若い','わかい','wakai','Muda','Sifat'],
+    ['馬','ba','uma','Kuda','馬','うま','uma','Kuda','Hari & alam'],
+    ['与','yo','ata(eru)','Memberi','与える','あたえる','ataeru','Memberi','Kata kerja'],
+    ['破','ha','yabu(ru)','Merusak / merobek','破る','やぶる','yaburu','Merobek','Kata kerja'],
+    ['号','gō','-','Nomor / sebutan','番号','ばんごう','bangō','Nomor','Lainnya'],
+    ['満','man','mi(tsu), mi(tasu)','Penuh','満足','まんぞく','manzoku','Puas','Lainnya'],
+    ['際','sai','kiwa','Saat / kesempatan','国際','こくさい','kokusai','Internasional','Lainnya'],
+    ['罪','zai','tsumi','Dosa / kejahatan','罪','つみ','tsumi','Dosa','Lainnya'],
+    ['存','son, zon','-','Ada / mengetahui','存在','そんざい','sonzai','Keberadaan','Lainnya'],
+    ['観','kan','-','Memandang','観光','かんこう','kankō','Wisata','Lainnya'],
+    ['増','zō','fu(eru), fu(yasu), ma(su)','Bertambah','増える','ふえる','fueru','Bertambah','Kata kerja'],
+    ['険','ken','kewa(shii)','Curam / bahaya','危険','きけん','kiken','Bahaya','Lainnya'],
+    ['犯','han','oka(su)','Kejahatan','犯人','はんにん','hannin','Pelaku kejahatan','Orang & tubuh'],
+    ['深','shin','fuka(i)','Dalam','深い','ふかい','fukai','Dalam','Sifat'],
+    ['幸','kō','shiawa(se), saiwai, sachi','Bahagia','幸せ','しあわせ','shiawase','Bahagia','Sifat'],
+    ['単','tan','-','Sederhana','単語','たんご','tango','Kosakata','Sekolah'],
+    ['薬','yaku','kusuri','Obat','薬','くすり','kusuri','Obat','Benda & tempat'],
+    ['示','ji, shi','shime(su)','Menunjukkan','示す','しめす','shimesu','Menunjukkan','Kata kerja'],
+    ['抜','batsu','nu(ku), nu(keru)','Mencabut','抜く','ぬく','nuku','Mencabut','Kata kerja'],
+    ['速','soku','haya(i)','Cepat','速い','はやい','hayai','Cepat','Sifat'],
+    ['未','mi','ima(da)','Belum','未来','みらい','mirai','Masa depan','Waktu'],
+    ['米','bei, mai','kome','Beras / Amerika','米','こめ','kome','Beras','Benda & tempat'],
+    ['痛','tsū','ita(i), ita(mu)','Sakit','痛い','いたい','itai','Sakit','Sifat'],
+    ['倒','tō','tao(reru), tao(su)','Roboh','倒れる','たおれる','taoreru','Roboh','Kata kerja'],
+    ['論','ron','-','Argumen','議論','ぎろん','giron','Perdebatan','Lainnya'],
+    ['都','to, tsu','miyako','Ibu kota / kota','都会','とかい','tokai','Kota besar','Benda & tempat'],
+    ['敗','hai','yabu(reru)','Kalah / gagal','失敗','しっぱい','shippai','Kegagalan','Lainnya'],
+    ['寝','shin','ne(ru)','Tidur','寝る','ねる','neru','Tidur','Kata kerja'],
+    ['夢','mu','yume','Mimpi','夢','ゆめ','yume','Mimpi','Lainnya'],
+    ['側','soku','gawa, kawa','Sisi','右側','みぎがわ','migigawa','Sisi kanan','Arah'],
+    ['遅','chi','oso(i), oku(reru)','Lambat / terlambat','遅い','おそい','osoi','Lambat','Sifat'],
+    ['探','tan','saga(su)','Mencari','探す','さがす','sagasu','Mencari','Kata kerja'],
+    ['妻','sai','tsuma','Istri','妻','つま','tsuma','Istri','Orang & tubuh'],
+    ['例','rei','tato(eru)','Contoh','例','れい','rei','Contoh','Lainnya'],
+    ['降','kō','fu(ru), o(riru)','Turun','降る','ふる','furu','Turun (hujan)','Kata kerja'],
+    ['割','katsu','wa(ru), wari','Membagi','割る','わる','waru','Membelah','Kata kerja'],
+    ['科','ka','-','Bidang / departemen','科学','かがく','kagaku','Ilmu pengetahuan','Sekolah'],
+    ['段','dan','-','Tingkat / anak tangga','階段','かいだん','kaidan','Tangga','Benda & tempat'],
+    ['遠','en, on','tō(i)','Jauh','遠い','とおい','tōi','Jauh','Sifat'],
+    ['種','shu','tane','Jenis / biji','種類','しゅるい','shurui','Jenis','Lainnya'],
+    ['恐','kyō','oso(reru), kowa(i)','Takut','恐れる','おそれる','osoreru','Takut','Kata kerja'],
+    ['責','seki','se(meru)','Menyalahkan','責める','せめる','semeru','Menyalahkan','Kata kerja'],
+    ['申','shin','mō(su)','Berkata (sopan)','申す','もうす','mōsu','Berkata (merendah)','Kata kerja'],
+    ['差','sa','sa(su)','Perbedaan','差','さ','sa','Perbedaan','Lainnya'],
+    ['忘','bō','wasu(reru)','Lupa','忘れる','わすれる','wasureru','Lupa','Kata kerja'],
+    ['冷','rei','tsume(tai), hi(ya), sa(meru)','Dingin','冷たい','つめたい','tsumetai','Dingin','Sifat'],
+    ['払','futsu','hara(u)','Membayar','払う','はらう','harau','Membayar','Kata kerja'],
+    ['席','seki','-','Kursi / tempat duduk','席','せき','seki','Tempat duduk','Benda & tempat'],
+    ['園','en','sono','Taman','公園','こうえん','kōen','Taman','Benda & tempat'],
+    ['欲','yoku','ho(shii)','Ingin / keinginan','欲しい','ほしい','hoshii','Ingin','Sifat'],
+    ['徒','to','-','Murid / berjalan kaki','生徒','せいと','seito','Murid','Sekolah'],
+    ['束','soku','taba','Ikatan','約束','やくそく','yakusoku','Janji','Lainnya'],
+    ['礼','rei','-','Salam / terima kasih','お礼','おれい','orei','Ucapan terima kasih','Lainnya'],
+    ['労','rō','-','Kerja keras','労働','ろうどう','rōdō','Tenaga kerja','Lainnya'],
+    ['静','sei, jō','shizu(ka)','Tenang','静か','しずか','shizuka','Tenang','Sifat'],
+    ['娘','-','musume','Putri','娘','むすめ','musume','Putri','Orang & tubuh'],
+    ['識','shiki','-','Pengetahuan','知識','ちしき','chishiki','Pengetahuan','Sekolah'],
+    ['熱','netsu','atsu(i)','Panas / demam','熱い','あつい','atsui','Panas','Sifat'],
+    ['皆','kai','mina','Semua','皆','みな','mina','Semua orang','Orang & tubuh'],
+    ['処','sho','-','Mengurus / tempat','処理','しょり','shori','Pengolahan','Lainnya'],
+    ['遊','yū','aso(bu)','Bermain','遊ぶ','あそぶ','asobu','Bermain','Kata kerja'],
+    ['除','jo, ji','nozo(ku)','Menyingkirkan','除く','のぞく','nozoku','Menyingkirkan','Kata kerja'],
+    ['寄','ki','yo(ru)','Mendekat / mampir','寄る','よる','yoru','Mampir','Kata kerja'],
+    ['末','matsu','sue','Akhir','週末','しゅうまつ','shūmatsu','Akhir pekan','Waktu'],
+    ['喜','ki','yoroko(bu)','Gembira','喜ぶ','よろこぶ','yorokobu','Bergembira','Kata kerja'],
+    ['岡','kō','oka','Bukit','岡山','おかやま','Okayama','Kota Okayama','Benda & tempat'],
+    ['精','sei, shō','-','Semangat / murni','精神','せいしん','seishin','Jiwa','Lainnya'],
+    ['類','rui','tagui','Jenis','書類','しょるい','shorui','Dokumen','Lainnya'],
+    ['登','tō, to','nobo(ru)','Mendaki','登る','のぼる','noboru','Mendaki','Kata kerja'],
+    ['似','ji','ni(ru)','Mirip','似る','にる','niru','Mirip','Kata kerja'],
+    ['具','gu','-','Alat','道具','どうぐ','dōgu','Alat','Benda & tempat'],
+    ['迎','gei','muka(eru)','Menyambut','迎える','むかえる','mukaeru','Menyambut','Kata kerja'],
+    ['押','ō','o(su)','Mendorong','押す','おす','osu','Mendorong','Kata kerja'],
+    ['路','ro','michi','Jalan','道路','どうろ','dōro','Jalan raya','Benda & tempat'],
+    ['居','kyo','i(ru)','Berada / tinggal','居る','いる','iru','Ada (makhluk hidup)','Kata kerja'],
+    ['怖','fu','kowa(i)','Menakutkan','怖い','こわい','kowai','Menakutkan','Sifat'],
+    ['閉','hei','shi(meru), to(jiru)','Menutup','閉める','しめる','shimeru','Menutup','Kata kerja'],
+    ['余','yo','ama(ru), ama(su)','Sisa / berlebih','余る','あまる','amaru','Bersisa','Kata kerja'],
+    ['困','kon','koma(ru)','Kesulitan','困る','こまる','komaru','Kesulitan','Kata kerja'],
+    ['値','chi','ne, atai','Harga / nilai','値段','ねだん','nedan','Harga','Lainnya'],
+    ['曲','kyoku','ma(garu), ma(geru)','Melengkung / lagu','曲がる','まがる','magaru','Berbelok','Kata kerja'],
+    ['亡','bō, mō','na(kunaru)','Wafat','亡くなる','なくなる','nakunaru','Meninggal','Kata kerja'],
+    ['悲','hi','kana(shii)','Sedih','悲しい','かなしい','kanashii','Sedih','Sifat'],
+    ['怒','do','oko(ru), ika(ri)','Marah','怒る','おこる','okoru','Marah','Kata kerja'],
+    ['非','hi','-','Bukan / tidak-','非常','ひじょう','hijō','Sangat / darurat','Lainnya'],
+    ['俺','-','ore','Aku (kasar)','俺','おれ','ore','Aku (pria)','Orang & tubuh'],
+    ['酒','shu','sake, saka','Minuman keras','酒','さけ','sake','Sake / minuman keras','Benda & tempat'],
+    ['盗','tō','nusu(mu)','Mencuri','盗む','ぬすむ','nusumu','Mencuri','Kata kerja'],
+    ['商','shō','akina(u)','Dagang','商売','しょうばい','shōbai','Perdagangan','Lainnya'],
+    ['誰','sui','dare','Siapa','誰','だれ','dare','Siapa','Orang & tubuh'],
+    ['越','etsu','ko(su), ko(eru)','Melewati','越える','こえる','koeru','Melewati','Kata kerja'],
+    ['宅','taku','-','Rumah','自宅','じたく','jitaku','Rumah sendiri','Benda & tempat'],
+    ['横','ō','yoko','Samping / lebar','横','よこ','yoko','Samping','Arah'],
+    ['昔','seki, shaku','mukashi','Dahulu','昔','むかし','mukashi','Dahulu kala','Waktu'],
+    ['鳴','mei','na(ku), na(ru)','Berbunyi / berkicau','鳴く','なく','naku','Berbunyi','Kata kerja'],
+    ['費','hi','tsui(yasu), tsui(eru)','Biaya / menghabiskan','費用','ひよう','hiyō','Biaya','Lainnya'],
+    ['婦','fu','-','Wanita / istri','主婦','しゅふ','shufu','Ibu rumah tangga','Orang & tubuh'],
+    ['背','hai','se, sei, somu(ku)','Punggung / tinggi badan','背中','せなか','senaka','Punggung','Orang & tubuh'],
+    ['舞','bu','ma(u), mai','Menari','舞う','まう','mau','Menari','Kata kerja'],
+    ['絵','kai, e','e','Gambar / lukisan','絵','え','e','Gambar','Benda & tempat'],
+    ['規','ki','-','Aturan / standar','規則','きそく','kisoku','Peraturan','Lainnya'],
+    ['吸','kyū','su(u)','Menghisap','吸う','すう','suu','Menghisap','Kata kerja'],
+    ['因','in','yo(ru)','Penyebab','原因','げんいん','genin','Penyebab','Lainnya'],
+    ['散','san','chi(ru), chi(rasu)','Berhamburan','散る','ちる','chiru','Berserakan','Kata kerja'],
+    ['福','fuku','-','Keberuntungan','幸福','こうふく','kōfuku','Kebahagiaan','Lainnya'],
+    ['留','ryū, ru','to(meru), to(maru)','Berhenti / tinggal','留学','りゅうがく','ryūgaku','Belajar di luar negeri','Sekolah'],
+    ['訪','hō','tazu(neru), otozu(reru)','Mengunjungi','訪ねる','たずねる','tazuneru','Mengunjungi','Kata kerja'],
+    ['程','tei','hodo','Tingkat / kira-kira','程度','ていど','teido','Tingkat','Lainnya'],
+    ['辞','ji','ya(meru)','Mengundurkan diri','辞める','やめる','yameru','Berhenti dari pekerjaan','Kata kerja'],
+    ['宿','shuku','yado','Penginapan','宿題','しゅくだい','shukudai','Pekerjaan rumah','Sekolah'],
+    ['迷','mei','mayo(u)','Tersesat / ragu','迷う','まよう','mayou','Tersesat','Kata kerja'],
+    ['浮','fu','u(ku), u(kabu)','Mengapung','浮かぶ','うかぶ','ukabu','Mengapung','Kata kerja'],
+    ['雪','setsu','yuki','Salju','雪','ゆき','yuki','Salju','Hari & alam'],
+    ['暮','bo','ku(rasu), ku(reru)','Hidup / senja','暮らす','くらす','kurasu','Hidup','Kata kerja'],
+    ['腹','fuku','hara','Perut','腹','はら','hara','Perut','Orang & tubuh'],
+    ['庭','tei','niwa','Halaman / taman','庭','にわ','niwa','Halaman','Benda & tempat'],
+    ['適','teki','-','Cocok','適当','てきとう','tekitō','Cocok / asal-asalan','Sifat'],
+    ['抱','hō','da(ku), ida(ku), kaka(eru)','Memeluk','抱く','だく','daku','Memeluk','Kata kerja'],
+    ['候','kō','-','Cuaca / musim','天候','てんこう','tenkō','Cuaca','Hari & alam'],
+    ['刻','koku','kiza(mu)','Mengukir / waktu','時刻','じこく','jikoku','Waktu','Waktu'],
+    ['景','kei','-','Pemandangan','景色','けしき','keshiki','Pemandangan','Hari & alam'],
+    ['疲','hi','tsuka(reru)','Lelah','疲れる','つかれる','tsukareru','Lelah','Kata kerja'],
+    ['途','to','-','Jalan / rute','途中','とちゅう','tochū','Di tengah jalan','Lainnya'],
+    ['財','zai, sai','-','Harta','財布','さいふ','saifu','Dompet','Benda & tempat'],
+    ['更','kō','sara, fu(keru), fu(kasu)','Lebih lagi / larut','更に','さらに','sara ni','Lebih lagi','Lainnya'],
+    ['老','rō','o(iru), fu(keru)','Tua','老人','ろうじん','rōjin','Orang tua','Orang & tubuh'],
+    ['暗','an','kura(i)','Gelap','暗い','くらい','kurai','Gelap','Sifat'],
+    ['眠','min','nemu(ru), nemu(i)','Tidur','眠る','ねむる','nemuru','Tidur','Kata kerja'],
+    ['互','go','taga(i)','Saling','互い','たがい','tagai','Satu sama lain','Lainnya'],
+    ['杯','hai','sakazuki','Cangkir / gelas','乾杯','かんぱい','kanpai','Bersulang','Lainnya'],
+    ['雑','zatsu, zō','-','Campur / kasar','雑誌','ざっし','zasshi','Majalah','Benda & tempat'],
+    ['給','kyū','-','Gaji / memberi','給料','きゅうりょう','kyūryō','Gaji','Lainnya'],
+    ['便','ben, bin','tayo(ri)','Praktis / pos','便利','べんり','benri','Praktis','Sifat'],
+    ['御','gyo, go','-','Terhormat','御飯','ごはん','gohan','Nasi / makanan','Lainnya'],
+    ['積','seki','tsu(mu), tsu(moru)','Menumpuk','積む','つむ','tsumu','Menumpuk','Kata kerja'],
+    ['洗','sen','ara(u)','Mencuci','洗う','あらう','arau','Mencuci','Kata kerja'],
+    ['港','kō','minato','Pelabuhan','港','みなと','minato','Pelabuhan','Benda & tempat'],
+    ['晴','sei','ha(reru), ha(rasu)','Cerah','晴れる','はれる','hareru','Cerah','Kata kerja'],
+    ['否','hi','ina','Menolak / tidak','否定','ひてい','hitei','Penyangkalan','Lainnya'],
+    ['陽','yō','-','Matahari / cahaya','太陽','たいよう','taiyō','Matahari','Hari & alam'],
+    ['折','setsu','o(ru), o(reru)','Melipat / patah','折る','おる','oru','Melipat / mematahkan','Kata kerja'],
+    ['招','shō','mane(ku)','Mengundang','招く','まねく','maneku','Mengundang','Kata kerja'],
+    ['掛','-','ka(keru), ka(karu)','Menggantung','掛ける','かける','kakeru','Menggantung','Kata kerja'],
+    ['等','tō','hito(shii)','Sama / dan lain-lain','等しい','ひとしい','hitoshii','Sama','Sifat'],
+    ['吹','sui','fu(ku)','Meniup','吹く','ふく','fuku','Meniup','Kata kerja'],
+    ['努','do','tsuto(meru)','Berusaha','努力','どりょく','doryoku','Usaha','Lainnya'],
+    ['髪','hatsu','kami','Rambut','髪','かみ','kami','Rambut','Orang & tubuh'],
+    ['富','fu, fū','to(mu), tomi','Kaya / kekayaan','富む','とむ','tomu','Kaya / melimpah','Kata kerja'],
+    ['欠','ketsu','ka(ku), ka(keru)','Kurang / retak','欠ける','かける','kakeru','Kurang / retak','Kata kerja'],
+    ['才','sai','-','Bakat / usia','天才','てんさい','tensai','Jenius','Orang & tubuh'],
+    ['草','sō','kusa','Rumput','草','くさ','kusa','Rumput','Hari & alam'],
+    ['到','tō','-','Tiba','到着','とうちゃく','tōchaku','Kedatangan','Lainnya'],
+    ['誤','go','ayama(ru)','Salah / keliru','誤る','あやまる','ayamaru','Berbuat salah','Kata kerja'],
+    ['歯','shi','ha','Gigi','歯','は','ha','Gigi','Orang & tubuh'],
+    ['慣','kan','na(reru), na(rasu)','Terbiasa','慣れる','なれる','nareru','Terbiasa','Kata kerja'],
+    ['祖','so','-','Leluhur','祖父','そふ','sofu','Kakek','Orang & tubuh'],
+    ['忙','bō','isoga(shii)','Sibuk','忙しい','いそがしい','isogashii','Sibuk','Sifat'],
+    ['勤','kin, gon','tsuto(meru)','Bekerja','勤める','つとめる','tsutomeru','Bekerja di','Kata kerja'],
+    ['列','retsu','-','Baris / antrean','行列','ぎょうれつ','gyōretsu','Antrean','Lainnya'],
+    ['恥','chi','ha(ji), ha(zukashii), ha(jiru)','Malu','恥ずかしい','はずかしい','hazukashii','Malu','Sifat'],
+    ['賛','san','-','Setuju','賛成','さんせい','sansei','Persetujuan','Lainnya'],
+    ['箱','-','hako','Kotak','箱','はこ','hako','Kotak','Benda & tempat'],
+    ['晩','ban','-','Malam','今晩','こんばん','konban','Malam ini','Waktu'],
+    ['窓','sō','mado','Jendela','窓','まど','mado','Jendela','Benda & tempat'],
+    ['靴','ka','kutsu','Sepatu','靴','くつ','kutsu','Sepatu','Benda & tempat'],
+    ['頂','chō','itada(ku), itadaki','Puncak / menerima','頂く','いただく','itadaku','Menerima','Kata kerja'],
+    ['偉','i','era(i)','Hebat','偉い','えらい','erai','Hebat','Sifat'],
+    ['寒','kan','samu(i)','Dingin','寒い','さむい','samui','Dingin','Sifat'],
+    ['猫','byō','neko','Kucing','猫','ねこ','neko','Kucing','Hari & alam'],
+    ['泳','ei','oyo(gu)','Berenang','泳ぐ','およぐ','oyogu','Berenang','Kata kerja'],
+    ['貧','hin, bin','mazu(shii)','Miskin','貧しい','まずしい','mazushii','Miskin','Sifat'],
+    ['易','eki, i','yasa(shii)','Mudah','易しい','やさしい','yasashii','Mudah','Sifat'],
+    ['煙','en','kemuri, kemu(ru)','Asap','煙','けむり','kemuri','Asap','Hari & alam'],
+    ['偶','gū','-','Kebetulan / pasangan','偶然','ぐうぜん','gūzen','Kebetulan','Lainnya'],
+    ['幾','ki','iku-','Berapa banyak','幾つ','いくつ','ikutsu','Berapa banyak','Angka']
+  ];
+  KANJI.forEach(function (k) { k[9] = 'N5'; });
+  KANJI_N3.forEach(function (k) { k[9] = 'N3'; KANJI.push(k); });
+  var KLEVELS = ['Semua level', 'N5', 'N3'];
+
+  /* ---------- Util ---------- */
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var canSpeak = 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
+  function speak(t) {
+    try {
+      var u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 0.8;
+      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+
+  var store = {
+    get: function () { try { return JSON.parse(localStorage.getItem('nihongo-mulai') || '{}'); } catch (e) { return {}; } },
+    set: function (o) { try { localStorage.setItem('nihongo-mulai', JSON.stringify(o)); } catch (e) {} }
+  };
+  var learned = store.get();
+
+  /* ---------- Kana ---------- */
+  var script = 0;        // 0 = hiragana, 1 = katakana
+  var selected = KANA[0];
+
+  function key(c) { return (script === 0 ? 'h' : 'k') + c[0]; }
+
+  function renderChart() {
+    var chart = $('chart'); chart.textContent = '';
+    ROWS.forEach(function (row) {
+      row.forEach(function (c) {
+        if (!c) { chart.appendChild(el('div', 'cell gap')); return; }
+        var b = el('button', 'cell' + (learned[key(c)] ? ' done' : ''));
+        b.type = 'button';
+        b.setAttribute('aria-pressed', c === selected ? 'true' : 'false');
+        b.setAttribute('aria-label', c[script] + ', dibaca ' + c[2]);
+        b.appendChild(el('span', 'k', c[script]));
+        b.appendChild(el('span', 'r', c[2]));
+        b.addEventListener('click', function () { selected = c; renderChart(); renderDetail(); });
+        chart.appendChild(b);
+      });
+    });
+    var n = KANA.filter(function (c) { return learned[key(c)]; }).length;
+    $('prog-text').textContent = n + ' dari ' + KANA.length + ' hafal';
+    $('prog-bar').style.width = (n / KANA.length * 100) + '%';
+  }
+
+  function renderDetail() {
+    var c = selected, d = $('detail'); d.textContent = '';
+    d.appendChild(el('div', 'big', c[script]));
+    var mid = el('div'); mid.style.display = 'flex'; mid.style.flexDirection = 'column'; mid.style.gap = '10px'; mid.style.alignItems = 'center'; mid.style.minWidth = '0';
+    mid.appendChild(el('div', 'rom', c[2]));
+    var ex = el('div', 'example');
+    if (script === 0) {
+      ex.appendChild(el('span', 'lbl', 'Contoh kata'));
+      if (c[3]) {
+        ex.appendChild(el('span', 'w', c[3]));
+        ex.appendChild(el('span', 'm', c[4] + ' = ' + c[5]));
+      } else {
+        ex.appendChild(el('span', 'm', c[5]));
+      }
+    } else {
+      ex.appendChild(el('span', 'lbl', 'Pasangan hiragana'));
+      ex.appendChild(el('span', 'w', c[0]));
+      ex.appendChild(el('span', 'm', 'Bunyinya sama, bentuknya berbeda'));
+    }
+    mid.appendChild(ex);
+    var act = el('div', 'actions');
+    if (canSpeak) {
+      var sp = el('button', 'btn primary', 'Dengar'); sp.type = 'button';
+      sp.addEventListener('click', function () { speak(script === 0 && c[3] ? c[3] : c[script]); });
+      act.appendChild(sp);
+    }
+    var done = !!learned[key(c)];
+    var hf = el('button', 'btn' + (done ? ' on' : ''), done ? '✓ Sudah hafal' : 'Sudah hafal'); hf.type = 'button';
+    hf.setAttribute('aria-pressed', done ? 'true' : 'false');
+    hf.addEventListener('click', function () {
+      if (learned[key(c)]) delete learned[key(c)]; else learned[key(c)] = 1;
+      store.set(learned); renderChart(); renderDetail();
+    });
+    act.appendChild(hf);
+    mid.appendChild(act);
+    d.appendChild(mid);
+  }
+
+  function setScript(s) {
+    script = s;
+    $('seg-h').setAttribute('aria-pressed', s === 0 ? 'true' : 'false');
+    $('seg-k').setAttribute('aria-pressed', s === 1 ? 'true' : 'false');
+    renderChart(); renderDetail();
+  }
+  $('seg-h').addEventListener('click', function () { setScript(0); });
+  $('seg-k').addEventListener('click', function () { setScript(1); });
+
+  /* ---------- Kosakata ---------- */
+  var cat = 'Semua', query = '';
+  function renderFilters() {
+    var f = $('filters'); f.textContent = '';
+    CATS.forEach(function (c) {
+      var b = el('button', 'chip', c); b.type = 'button';
+      b.setAttribute('aria-pressed', c === cat ? 'true' : 'false');
+      b.addEventListener('click', function () { cat = c; renderFilters(); renderVocab(); });
+      f.appendChild(b);
+    });
+    var s = document.createElement('input');
+    s.type = 'search'; s.id = 'vocab-search'; s.placeholder = 'Cari kata atau arti'; s.value = query;
+    s.setAttribute('aria-label', 'Cari kosakata');
+    s.addEventListener('input', function () { query = s.value; renderVocab(); });
+    f.appendChild(s);
+  }
+  function renderVocab() {
+    var box = $('vocab'); box.textContent = '';
+    var q = query.trim().toLowerCase();
+    var list = VOCAB.filter(function (v) {
+      if (cat !== 'Semua' && v[4] !== cat) return false;
+      if (!q) return true;
+      return (v[0] + v[1] + v[2] + v[3]).toLowerCase().indexOf(q) !== -1;
+    });
+    if (!list.length) { box.appendChild(el('p', 'empty', 'Tidak ada kata yang cocok. Coba kata kunci lain.')); return; }
+    list.forEach(function (v) {
+      var c = el('div', 'vcard');
+      c.appendChild(el('div', 'jp', v[0]));
+      if (canSpeak) {
+        var b = el('button', 'sp', 'Dengar'); b.type = 'button';
+        b.setAttribute('aria-label', 'Dengar ' + v[2]);
+        b.addEventListener('click', function () { speak(v[1] || v[0]); });
+        c.appendChild(b);
+      }
+      if (v[1]) c.appendChild(el('div', 'rd', v[1]));
+      c.appendChild(el('div', 'ro', v[2]));
+      c.appendChild(el('div', 'id', v[3]));
+      box.appendChild(c);
+    });
+  }
+
+  /* ---------- Kanji ---------- */
+  var kcat = 'Semua', kquery = '', klevel = 'Semua level', kshown = 60;
+  function kkey(k) { return 'j' + k[0]; }
+  function renderKanjiFilters() {
+    var l = $('klevels'); l.textContent = '';
+    KLEVELS.forEach(function (c) {
+      var b = el('button', 'chip', c); b.type = 'button';
+      b.setAttribute('aria-pressed', c === klevel ? 'true' : 'false');
+      b.addEventListener('click', function () { klevel = c; kshown = 60; renderKanjiFilters(); renderKanji(); });
+      l.appendChild(b);
+    });
+    var f = $('kfilters'); f.textContent = '';
+    KCATS.forEach(function (c) {
+      var b = el('button', 'chip', c); b.type = 'button';
+      b.setAttribute('aria-pressed', c === kcat ? 'true' : 'false');
+      b.addEventListener('click', function () { kcat = c; kshown = 60; renderKanjiFilters(); renderKanji(); });
+      f.appendChild(b);
+    });
+    var s = document.createElement('input');
+    s.type = 'search'; s.id = 'kanji-search'; s.placeholder = 'Cari kanji, bacaan, atau arti'; s.value = kquery;
+    s.setAttribute('aria-label', 'Cari kanji');
+    s.addEventListener('input', function () { kquery = s.value; kshown = 60; renderKanji(); });
+    f.appendChild(s);
+  }
+  function renderKanji() {
+    var box = $('kanji'); box.textContent = '';
+    var q = kquery.trim().toLowerCase();
+    var inLevel = KANJI.filter(function (k) { return klevel === 'Semua level' || k[9] === klevel; });
+    var n = inLevel.filter(function (k) { return learned[kkey(k)]; }).length;
+    $('kprog-text').textContent = n + ' dari ' + inLevel.length + ' hafal';
+    $('kprog-bar').style.width = (inLevel.length ? n / inLevel.length * 100 : 0) + '%';
+    var list = inLevel.filter(function (k) {
+      if (kcat !== 'Semua' && k[8] !== kcat) return false;
+      if (!q) return true;
+      return (k[0] + k[1] + k[2] + k[3] + k[4] + k[5] + k[6] + k[7]).toLowerCase().indexOf(q) !== -1;
+    });
+    if (!list.length) { box.appendChild(el('p', 'empty', 'Tidak ada kanji yang cocok. Coba kata kunci lain.')); return; }
+    list.slice(0, kshown).forEach(function (k) {
+      var c = el('div', 'vcard kj');
+      c.appendChild(el('div', 'jp', k[0]));
+      if (canSpeak) {
+        var b = el('button', 'sp', 'Dengar'); b.type = 'button';
+        b.setAttribute('aria-label', 'Dengar contoh ' + k[6]);
+        b.addEventListener('click', function () { speak(k[5]); });
+        c.appendChild(b);
+      }
+      c.appendChild(el('div', 'rd', 'Level ' + k[9]));
+      c.appendChild(el('div', 'ro', k[3]));
+      c.appendChild(el('div', 'id', 'On: ' + k[1] + ' · Kun: ' + k[2]));
+      var ex = el('div', 'ex');
+      ex.appendChild(el('b', null, k[4]));
+      ex.appendChild(document.createTextNode(' ' + k[5] + ' (' + k[6] + ') = ' + k[7]));
+      c.appendChild(ex);
+      var done = !!learned[kkey(k)];
+      var hf = el('button', 'btn hf' + (done ? ' on' : ''), done ? '✓ Sudah hafal' : 'Sudah hafal'); hf.type = 'button';
+      hf.setAttribute('aria-pressed', done ? 'true' : 'false');
+      hf.addEventListener('click', function () {
+        if (learned[kkey(k)]) delete learned[kkey(k)]; else learned[kkey(k)] = 1;
+        store.set(learned); renderKanji();
+      });
+      c.appendChild(hf);
+      box.appendChild(c);
+    });
+    if (list.length > kshown) {
+      var m = el('button', 'btn more', 'Tampilkan lebih banyak (sisa ' + (list.length - kshown) + ')'); m.type = 'button';
+      m.addEventListener('click', function () { kshown += 60; renderKanji(); });
+      box.appendChild(m);
+    }
+  }
+
+  /* ---------- Kuis ---------- */
+  var Q = null;
+  var QS = { materi: 'hira', n: 10 };
+  var MATERI = [['hira', 'Hiragana'], ['kata', 'Katakana'], ['vocab', 'Kosakata'], ['n5', 'Kanji N5'], ['n3', 'Kanji N3'], ['verb', 'Kata kerja'], ['mix', 'Campur']];
+  var NUMS = [10, 20, 30];
+
+  function uniq(a) { var s = {}, o = []; a.forEach(function (v) { if (!s[v]) { s[v] = 1; o.push(v); } }); return o; }
+  function makeOpts(ans, pool) {
+    var w = shuffle(uniq(pool).filter(function (v) { return v !== ans; })).slice(0, 3);
+    return shuffle([ans].concat(w));
+  }
+  function raw(q, ans, pool, ask, tip) { return { q: q, ans: ans, pool: pool, ask: ask, tip: tip || '', small: String(q).length > 3 }; }
+  function bank(id) {
+    if (id === 'hira' || id === 'kata') {
+      var sc = id === 'hira' ? 0 : 1, rp = KANA.map(function (c) { return c[2]; });
+      return KANA.map(function (c) { return raw(c[sc], c[2], rp, 'Bagaimana cara membacanya?'); });
+    }
+    if (id === 'vocab') {
+      var vp = VOCAB.map(function (v) { return v[3]; });
+      return VOCAB.map(function (v) { return raw(v[0], v[3], vp, 'Apa artinya?', v[1] ? 'Dibaca ' + v[1] : ''); });
+    }
+    if (id === 'verb') {
+      var vl = KANJI.filter(function (k) { return k[8] === 'Kata kerja'; });
+      var vm = vl.map(function (k) { return k[7]; });
+      return vl.map(function (k) { return raw(k[4], k[7], vm, 'Apa artinya kata kerja ini?', k[5] !== k[4] ? 'Dibaca ' + k[5] : ''); });
+    }
+    var lv = id === 'n5' ? 'N5' : 'N3';
+    var kl = KANJI.filter(function (k) { return k[9] === lv; });
+    var km = kl.map(function (k) { return k[3]; });
+    return kl.map(function (k) { return raw(k[0], k[3], km, 'Apa artinya kanji ini?'); });
+  }
+  var MIXSRC = ['hira', 'kata', 'vocab', 'n5', 'n3', 'verb'];
+  function bankSize(id) {
+    if (id !== 'mix') return bank(id).length;
+    return MIXSRC.reduce(function (t, x) { return t + bank(x).length; }, 0);
+  }
+  function pick(id, n) {
+    var items = [];
+    if (id === 'mix') {
+      var lists = MIXSRC.map(function (x) { return shuffle(bank(x)); });
+      for (var i = 0; items.length < n && i < 500; i++) {
+        lists.forEach(function (l) { if (i < l.length && items.length < n) items.push(l[i]); });
+      }
+      items = shuffle(items);
+    } else {
+      items = shuffle(bank(id)).slice(0, n);
+    }
+    return items.map(function (r) { return { q: r.q, ans: r.ans, ask: r.ask, tip: r.tip, small: r.small, opts: makeOpts(r.ans, r.pool) }; });
+  }
+  function qkey() { return 'q|' + QS.materi + '|' + QS.n; }
+
+  function startQuiz() {
+    Q = { qs: pick(QS.materi, QS.n), i: 0, score: 0, wrong: [], key: qkey(), retry: false };
+    renderQuiz();
+  }
+  function retryWrong() {
+    var w = Q.wrong.map(function (x) { return Object.assign({}, x, { opts: shuffle(x.opts) }); });
+    Q = { qs: shuffle(w), i: 0, score: 0, wrong: [], key: Q.key, retry: true };
+    renderQuiz();
+  }
+  function group(label, items, cur, onPick) {
+    var g = el('div', 'qgroup');
+    g.appendChild(el('div', 'qlabel', label));
+    var row = el('div', 'filters');
+    items.forEach(function (it) {
+      var b = el('button', 'chip', it[1]); b.type = 'button';
+      b.setAttribute('aria-pressed', String(it[0]) === String(cur) ? 'true' : 'false');
+      b.addEventListener('click', function () { onPick(it[0]); });
+      row.appendChild(b);
+    });
+    g.appendChild(row);
+    return g;
+  }
+
+  function renderQuiz() {
+    var box = $('quiz'); box.textContent = '';
+    if (!Q) {
+      var s = el('div', 'setup');
+      s.appendChild(group('Materi', MATERI, QS.materi, function (v) { QS.materi = v; renderQuiz(); }));
+      s.appendChild(group('Jumlah soal', NUMS.map(function (n) { return [n, n + ' soal']; }), QS.n, function (v) { QS.n = v; renderQuiz(); }));
+      var size = bankSize(QS.materi), real = Math.min(QS.n, size);
+      var best = learned[qkey()];
+      var info = best ? 'Skor terbaik: ' + best.s + ' dari ' + best.t : 'Belum ada skor untuk pilihan ini.';
+      if (size < QS.n) info += ' Materi ini hanya punya ' + size + ' soal.';
+      s.appendChild(el('p', 'hint', info));
+      var go = el('button', 'btn primary', 'Mulai kuis (' + real + ' soal)'); go.type = 'button';
+      go.addEventListener('click', startQuiz);
+      s.appendChild(go);
+      box.appendChild(s);
+      return;
+    }
+    var total = Q.qs.length;
+    if (Q.i >= total) {
+      var note = '';
+      if (!Q.retry) {
+        var prev = learned[Q.key];
+        if (!prev || Q.score / total > prev.s / prev.t) {
+          learned[Q.key] = { s: Q.score, t: total }; store.set(learned);
+          note = prev ? 'Rekor baru! Sebelumnya ' + prev.s + ' dari ' + prev.t + '.' : 'Skor pertama untuk pilihan ini tersimpan.';
+        } else {
+          note = 'Skor terbaik: ' + prev.s + ' dari ' + prev.t + '.';
+        }
+      }
+      var pct = Q.score / total;
+      box.appendChild(el('div', 'score', Q.score + '/' + total));
+      box.appendChild(el('p', 'sub', pct === 1 ? 'Sempurna. Semua jawaban benar.' : pct >= 0.7 ? 'Bagus. Ulangi bagian yang masih salah.' : 'Masih awal, itu wajar. Buka tab materi lalu coba lagi.'));
+      if (note) box.appendChild(el('p', 'hint', note));
+      if (Q.wrong.length) {
+        box.appendChild(el('strong', null, 'Yang perlu diulang'));
+        var ul = el('ul', 'review');
+        Q.wrong.forEach(function (w) { ul.appendChild(el('li', null, w.q + ' = ' + w.ans)); });
+        box.appendChild(ul);
+      }
+      var act = el('div', 'actions');
+      if (Q.wrong.length) {
+        var rw = el('button', 'btn primary', 'Ulangi yang salah (' + Q.wrong.length + ')'); rw.type = 'button';
+        rw.addEventListener('click', retryWrong);
+        act.appendChild(rw);
+      }
+      var again = el('button', 'btn' + (Q.wrong.length ? '' : ' primary'), 'Kuis baru'); again.type = 'button';
+      again.addEventListener('click', startQuiz);
+      var other = el('button', 'btn', 'Ganti materi'); other.type = 'button';
+      other.addEventListener('click', function () { Q = null; renderQuiz(); });
+      act.appendChild(again); act.appendChild(other);
+      box.appendChild(act);
+      return;
+    }
+    var cur = Q.qs[Q.i];
+    var head = el('div', 'qhead');
+    head.appendChild(el('span', null, (Q.retry ? 'Ulang soal salah ' : 'Soal ') + (Q.i + 1) + ' dari ' + total));
+    var scoreEl = el('span', null, 'Benar: ' + Q.score);
+    head.appendChild(scoreEl);
+    box.appendChild(head);
+    var pb = el('span', 'bar qbar'); var pi = document.createElement('i'); pi.style.width = (Q.i / total * 100) + '%'; pb.appendChild(pi);
+    box.appendChild(pb);
+    var p = el('div', 'qprompt');
+    p.appendChild(el('div', 'q' + (cur.small ? ' small' : ''), cur.q));
+    if (cur.tip) p.appendChild(el('div', 't', cur.tip));
+    p.appendChild(el('div', 't', cur.ask));
+    box.appendChild(p);
+    var opts = el('div', 'opts');
+    var fb = el('p', 'fb'); fb.setAttribute('aria-live', 'polite');
+    var next = el('button', 'btn primary', Q.i === total - 1 ? 'Lihat hasil' : 'Soal berikutnya'); next.type = 'button'; next.hidden = true;
+    next.addEventListener('click', function () { Q.i++; renderQuiz(); });
+    var btns = [];
+    cur.opts.forEach(function (o) {
+      var b = el('button', 'opt', o); b.type = 'button'; btns.push(b);
+      b.addEventListener('click', function () {
+        var right = o === cur.ans;
+        if (right) Q.score++; else Q.wrong.push(cur);
+        btns.forEach(function (x) {
+          x.disabled = true;
+          if (x.textContent === cur.ans) x.classList.add('ok');
+          else if (x === b) x.classList.add('no');
+        });
+        fb.className = 'fb ' + (right ? 'ok' : 'no');
+        fb.textContent = right ? '✓ Benar' : '✗ Kurang tepat. Jawabannya: ' + cur.ans;
+        next.hidden = false; next.focus();
+        scoreEl.textContent = 'Benar: ' + Q.score;
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    box.appendChild(fb);
+    var act2 = el('div', 'actions'); act2.appendChild(next);
+    var quit = el('button', 'btn', 'Keluar'); quit.type = 'button';
+    quit.addEventListener('click', function () { Q = null; renderQuiz(); });
+    act2.appendChild(quit);
+    box.appendChild(act2);
+  }
+
+  /* ---------- Tab / hash ---------- */
+  var VIEWS = ['kana', 'kosakata', 'kanji', 'kuis'];
+  function route() {
+    var h = (location.hash || '').replace('#', '');
+    if (VIEWS.indexOf(h) === -1) h = 'kana';
+    VIEWS.forEach(function (v) {
+      document.querySelector('[data-view="' + v + '"]').hidden = v !== h;
+      var a = document.querySelector('[data-tab="' + v + '"]');
+      if (v === h) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('hashchange', route);
+
+  /* ---------- Init ---------- */
+  renderChart(); renderDetail(); renderFilters(); renderVocab(); renderKanjiFilters(); renderKanji(); renderQuiz(); route();
+})();
+</script>
+
+</body></html>
